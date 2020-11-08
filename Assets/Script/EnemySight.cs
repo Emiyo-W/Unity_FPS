@@ -18,8 +18,6 @@ public class EnemySight : MonoBehaviour
     private PlayerHealth playerHealth;            //PlayerHealthスクリプト
     private HashIDs hash;                         //HashIDsスクリプト
     private PlayerController playerControl;       //PlayerControllerスクリプト
-    //test
-    private int test = 2;
 
     void Start()
     {
