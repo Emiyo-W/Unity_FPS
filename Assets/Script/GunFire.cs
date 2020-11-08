@@ -47,7 +47,7 @@ public class GunFire : MonoBehaviour
         flash.enabled = false;
         currentBullet = bulletCount;
         currentChargerBullet = chargerBulletCount;
-        bulletText.text = currentBullet + "/" + currentChargerBullet;
+        bulletText.text = "弾" + currentBullet + "/" + currentChargerBullet;
     }
 
     void Update()
@@ -95,7 +95,7 @@ public class GunFire : MonoBehaviour
             currentBullet += currentChargerBullet;
             currentChargerBullet = 0;
         }
-        bulletText.text = currentBullet + "/" + currentChargerBullet;
+        bulletText.text = "弾" + currentBullet + "/" + currentChargerBullet;
     }
 
     //リロード
@@ -142,7 +142,7 @@ public class GunFire : MonoBehaviour
                 return;
             }
             currentBullet--; //弾数1
-            bulletText.text = currentBullet + "/" + currentChargerBullet;//UI表示
+            bulletText.text = "弾" + currentBullet + "/" + currentChargerBullet;//UI表示
             DamageEnemy(); //ダメージを与える
             if (PlayerShootEvent != null)
                 PlayerShootEvent();
