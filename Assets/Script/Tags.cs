@@ -9,4 +9,10 @@ public class Tags
     public const string enemy = "Enemy";
     public const string fader = "Fader";
     public const string mainCamera = "MainCamera";
+
+    public const string gun = "Gun";
+
+    public const string metal = "metal";
+
+    public const string wall = "Wall";
 }

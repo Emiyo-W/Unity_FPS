@@ -8,17 +8,7 @@ public delegate void PlayerShoot();
 public class GunFire : MonoBehaviour
 {
     public static event PlayerShoot PlayerShootEvent;
-    public float fireRate = 0.1f; //射撃間隔
-    public float damage = 40;
-    public float reloadTime = 1.5f;
-    public float flashRate = 0.02f;
-    public AudioClip fireAudio; //fire音声
-    public AudioClip reloadAudio; //リロード音声
-    public AudioClip damageAudio; //ダメージ音声
-    public AudioClip dryFireAudio; //弾切れ音声
-    public GameObject explosion; //エフェクト
-    public int bulletCount = 30; //UI ,弾上限
-    public int chargerBulletCount = 60; // UI 予備弾上限
+    
     public Text bulletText; //弾のUIテキスト
 
     //各種アニメのstring値保存用
@@ -37,23 +27,26 @@ public class GunFire : MonoBehaviour
     private PlayerParameter parameter; //playerParameterスクリプト
     private PlayerController playerControl; // PlayerControllerスクリプト
 
+    private AKGun gun; //akgunスクリプト
+
     void Start()
     {
         //初期化
         parameter = GameObject.FindGameObjectWithTag(Tags.player).GetComponent<PlayerParameter>();
         playerControl = GameObject.FindGameObjectWithTag(Tags.player).GetComponent<PlayerController>();
+        gun = GameObject.FindGameObjectWithTag(Tags.gun).GetComponent<AKGun>();
         anim = this.GetComponent<Animation>();
         flash = this.transform.Find("muzzle_flash").GetComponent<MeshRenderer>();
         flash.enabled = false;
-        currentBullet = bulletCount;
-        currentChargerBullet = chargerBulletCount;
+        currentBullet = gun.bulletCount;
+        currentChargerBullet = gun.chargerBulletCount;
         bulletText.text = "弾" + currentBullet + "/" + currentChargerBullet;
     }
 
     void Update()
     {
         //Rキー入力　and　現在の弾数＜30
-        if (parameter.inputReload && currentBullet < bulletCount)
+        if (parameter.inputReload && currentBullet < gun.bulletCount)
             Reload();
 
         //mouse 0　入力 and リロードしていない
@@ -70,7 +63,7 @@ public class GunFire : MonoBehaviour
         //リロードアニメを停止
         anim.Stop(reloadAnim);
         //アニメスピード
-        anim[reloadAnim].speed = (anim[reloadAnim].clip.length / reloadTime);
+        anim[reloadAnim].speed = (anim[reloadAnim].clip.length / gun.reloadTime);
         //巻き戻し
         anim.Rewind(reloadAnim);
         //リロードアニメをplay
@@ -81,13 +74,13 @@ public class GunFire : MonoBehaviour
     private IEnumerator ReloadFinish()
     {
         //リロードアニメ終了後に変化
-        yield return new WaitForSeconds(reloadTime);
+        yield return new WaitForSeconds(gun.reloadTime);
         //予備弾＞弾上限-現在の弾
-        if (currentChargerBullet >= bulletCount - currentBullet)
+        if (currentChargerBullet >= gun.bulletCount - currentBullet)
         {
             //弾を上限に　予備弾-補充した弾
-            currentChargerBullet -= (bulletCount - currentBullet);
-            currentBullet = bulletCount;
+            currentChargerBullet -= (gun.bulletCount - currentBullet);
+            currentBullet = gun.bulletCount;
         }
         else
         {
@@ -111,11 +104,11 @@ public class GunFire : MonoBehaviour
             {
                 //fire音声
               
-                AudioSource.PlayClipAtPoint(dryFireAudio, transform.position);
+                AudioSource.PlayClipAtPoint(gun.dryFireAudio, transform.position);
                 return;
             }
 
-            AudioSource.PlayClipAtPoint(reloadAudio, transform.position);
+            AudioSource.PlayClipAtPoint(gun.reloadAudio, transform.position);
             ReloadAnim();
         }
     }
@@ -124,7 +117,7 @@ public class GunFire : MonoBehaviour
     private IEnumerator Flash()
     {
         flash.enabled = true;
-        yield return new WaitForSeconds(flashRate);
+        yield return new WaitForSeconds(gun.flashRate);
         flash.enabled = false;
     }
 
@@ -138,7 +131,7 @@ public class GunFire : MonoBehaviour
             if (currentBullet <= 0)
             {
                 Reload();
-                nextFireTime = Time.time + fireRate;
+                nextFireTime = Time.time + gun.fireRate;
                 return;
             }
             currentBullet--; //弾数1
@@ -146,8 +139,9 @@ public class GunFire : MonoBehaviour
             DamageEnemy(); //ダメージを与える
             if (PlayerShootEvent != null)
                 PlayerShootEvent();
-            AudioSource.PlayClipAtPoint(fireAudio, transform.position);
-            nextFireTime = Time.time + fireRate;
+            
+            AudioSource.PlayClipAtPoint(gun.fireAudio, transform.position, 0.2f);
+            nextFireTime = Time.time + gun.fireRate;
             anim.Rewind(fireAnim);
             anim.Play(fireAnim);
             StartCoroutine(Flash());
@@ -167,15 +161,19 @@ public class GunFire : MonoBehaviour
             //オブジェクトはenemy 　同時にカプセル
             if(hit.transform.tag==Tags.enemy && hit.collider is CapsuleCollider)
             {
-                //ダメージ音声を流す
-                AudioSource.PlayClipAtPoint(damageAudio, hit.transform.position);
+                
                 //敵オブジェクトの体に命中のエフェクトを生成
-                GameObject go = Instantiate(explosion, hit.point, Quaternion.identity);
+                GameObject go = Instantiate(gun.explosion, hit.point, Quaternion.identity);
                 //エフェクトを3秒後削除
                 Destroy(go, 3);
                 //ダメージ値を渡す
-                hit.transform.GetComponent<EnemyHealth>().TakeDamage(damage);
+                hit.transform.GetComponent<EnemyHealth>().TakeDamage(gun.damage);
             }
+            if(hit.transform.tag == Tags.metal)
+            {
+                hit.transform.GetComponent<ImaprtSound>().TakeDamage();
+            }
+
         }
         
     }

@@ -6,6 +6,8 @@ public class EnemyHealth : MonoBehaviour
 {
 
     public float hp = 100; //enemy hp
+
+    public AudioClip damageAudio; //ダメージ音声
     private Animator anim; //animatorコンポーネント
     private HashIDs hash; //HashIDsスクリプト
     private bool isDead = false; //enemyの死亡判定
@@ -21,6 +23,7 @@ public class EnemyHealth : MonoBehaviour
     public void TakeDamage(float damage)
     {
         hp -= damage;
+        AudioSource.PlayClipAtPoint(damageAudio, transform.position, 1.5f);
         //hpは0より小さい時に死亡判定
         if (hp <= 0 && !isDead)
         {
